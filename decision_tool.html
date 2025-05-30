@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta & Title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decision-Making Tool for IoT Cloud Platforms</title>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* === Main page style === */
         body {
             font-family: 'Inter', Arial, sans-serif;
             background: linear-gradient(120deg, #f8fafc 0%, #e9f0fb 100%);
@@ -15,6 +19,7 @@
             padding: 0 10px 30px 10px;
             color: #222;
         }
+        /* Main title */
         h1 {
             text-align: center;
             font-weight: 600;
@@ -22,6 +27,7 @@
             margin-bottom: 18px;
             letter-spacing: -1px;
         }
+        /* === Upload section === */
         .upload-section {
             border: 2px dashed #b6c6e3;
             background: #f4f8ff;
@@ -38,6 +44,7 @@
             background: #fff;
             margin-bottom: 8px;
         }
+        /* === Weights section === */
         .weights-section {
             margin: 24px 0 32px 0;
             padding: 24px 18px 10px 18px;
@@ -50,6 +57,7 @@
             margin-bottom: 10px;
             color: #2a4d8f;
         }
+        /* === Sliders === */
         .slider-container {
             margin: 18px 0 10px 0;
         }
@@ -69,6 +77,7 @@
             width: 100%;
             accent-color: #2a4d8f;
         }
+        /* === Results table === */
         .table-container {
             overflow-x: auto;
             background: #fff;
@@ -97,6 +106,7 @@
         .data-table tr:hover {
             background: #e3eaf7;
         }
+        /* === Charts === */
         .chart-container {
             background: #fff;
             border-radius: 16px;
@@ -110,6 +120,7 @@
             margin-bottom: 8px;
             display: block;
         }
+        /* === Dropdown === */
         select {
             padding: 8px 12px;
             border-radius: 8px;
@@ -123,12 +134,14 @@
             border: 1.5px solid #2a4d8f;
             outline: none;
         }
+        /* === Error messages === */
         .error {
             color: #d32f2f;
             margin: 10px 0;
             font-weight: 600;
             text-align: center;
         }
+        /* === Footer === */
         footer {
             width: 100%;
             text-align: center;
@@ -140,6 +153,7 @@
             border-radius: 0 0 16px 16px;
             box-shadow: 0 -2px 8px rgba(180,200,230,0.08);
         }
+        /* === Responsive === */
         @media (max-width: 900px) {
             .chart-container { max-width: 100% !important; }
         }
@@ -153,18 +167,21 @@
     </style>
 </head>
 <body>
+    <!-- ====== Main Title ====== -->
     <h1>Decision-Making Tool for IoT Cloud Platforms</h1>
     
     <div class="container">
         <div class="column">
+            <!-- ====== Upload & Help Section ====== -->
             <div class="upload-section">
                 <h2 style="display:inline-block;">File Upload</h2>
+                <!-- Help icon for modal -->
                 <button id="helpBtn" title="Help" style="margin-left:10px; background:#2a4d8f; color:#fff; border:none; border-radius:50%; width:28px; height:28px; font-size:18px; cursor:pointer;">?</button>
                 <input type="file" id="fileInput" accept=".csv,.txt">
                 <p>Supported file types: CSV and TXT</p>
             </div>
 
-            <!-- Help Modal -->
+            <!-- ====== Help Modal (Pop-up) ====== -->
             <div id="helpModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(30,40,60,0.25);">
                 <div style="background:#fff; max-width:420px; margin:80px auto; padding:28px 24px 18px 24px; border-radius:16px; box-shadow:0 4px 32px rgba(60,80,120,0.18); position:relative;">
                     <button id="closeHelp" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:22px; color:#2a4d8f; cursor:pointer;">&times;</button>
@@ -183,6 +200,7 @@
                         <li>OTA Update Capabilities</li>
                     </ul>
                     <p style="margin-bottom:6px;">Each value (except Platform) should be a number from 0 to 10.</p>
+                    <!-- Example CSV -->
                     <div style="background:#f4f8ff; border-radius:8px; padding:10px 12px; font-size:14px; font-family:monospace; margin-bottom:10px;">
                         Platform,Security Features,Scalability and Performance,Interoperability,Data Analytics and AI/ML Integration,Edge Computing Support,Pricing Models and Cost-effectiveness,Developer Tools and SDK Support,Compliance and Standards,OTA Update Capabilities<br>
                         AWS IoT Core,9,9,8,9,9,7,9,9,8
@@ -234,6 +252,11 @@
     </div>
 
     <script>
+        // ===================
+        // === JavaScript ===
+        // ===================
+
+        // === Feature definitions ===
         const features = [
             "Security Features",
             "Scalability and Performance",
@@ -246,11 +269,13 @@
             "OTA Update Capabilities"
         ];
 
+        // === Platform data and weights ===
         let platformData = [];
         let weights = Array(features.length).fill(5); // Default weights
         let barChart = null;
         let radarChart = null;
 
+        // === Chart colors ===
         const colors = [
             'rgba(54, 162, 235, 0.2)',  // Blue
             'rgba(255, 99, 132, 0.2)',  // Red
@@ -264,7 +289,6 @@
             'rgba(210, 199, 199, 0.2)', // Pink
             'rgba(78, 205, 196, 0.2)'   // Turquoise
         ];
-
         const borderColors = [
             'rgba(54, 162, 235, 1)',
             'rgba(255, 99, 132, 1)',
@@ -279,6 +303,7 @@
             'rgba(78, 205, 196, 1)'
         ];
 
+        // === Create sliders for weights ===
         function generateSliders() {
             const sliderContainer = document.getElementById("sliders");
             sliderContainer.innerHTML = '';
@@ -298,6 +323,7 @@
                 sliderContainer.appendChild(sliderDiv);
             });
 
+            // Event listeners for sliders
             document.querySelectorAll('input[type="range"]').forEach((slider) => {
                 slider.addEventListener("input", (e) => {
                     const index = e.target.dataset.index;
@@ -309,6 +335,7 @@
             });
         }
 
+        // === File upload and parsing ===
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -320,6 +347,7 @@
                     const rows = data.split('\n');
                     platformData = [];
 
+                    // Read each line of the file
                     rows.forEach((row, index) => {
                         if (index === 0) return; // Skip header row
                         const columns = row.split(',');
@@ -346,17 +374,21 @@
             reader.readAsText(file);
         });
 
+        // === Update table and charts ===
         function updateScores() {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
 
+            // Calculate score for each platform
             const platformsWithScores = platformData.map(platform => ({
                 ...platform,
                 weightedScore: calculateScore(platform.scores)
             }));
 
+            // Sort by score
             platformsWithScores.sort((a, b) => b.weightedScore - a.weightedScore);
 
+            // Update table
             platformsWithScores.forEach(platform => {
                 const tr = document.createElement('tr');
                 
@@ -364,12 +396,14 @@
                 tdPlatform.textContent = platform.name;
                 tr.appendChild(tdPlatform);
 
+                // Show feature values
                 platform.scores.forEach(score => {
                     const td = document.createElement('td');
                     td.textContent = score;
                     tr.appendChild(td);
                 });
 
+                // Show total score
                 const tdScore = document.createElement('td');
                 tdScore.textContent = platform.weightedScore.toFixed(2);
                 tr.appendChild(tdScore);
@@ -381,31 +415,7 @@
             updateRadarPlatformSelect(platformsWithScores);
         }
 
-        function calculateScore(scores) {
-            if (!Array.isArray(scores) || scores.length !== features.length) {
-                console.error('Invalid scores array');
-                return 0;
-            }
-
-            if (!Array.isArray(weights) || weights.length !== features.length) {
-                console.error('Invalid weights array');
-                return 0;
-            }
-
-            let score = 0;
-            let totalWeight = 0;
-            for (let i = 0; i < scores.length; i++) {
-                if (isNaN(scores[i]) || scores[i] < 0 || scores[i] > 10) {
-                    console.error(`Invalid score at index ${i}: ${scores[i]}`);
-                    return 0;
-                }
-                score += scores[i] * weights[i];
-                totalWeight += weights[i];
-            }
-            if (totalWeight === 0) return 0;
-            return score / totalWeight;
-        }
-
+        // === Bar Chart (Platform Score Comparison) ===
         function updateBarChart(platformsWithScores) {
             const ctx = document.getElementById('barChart').getContext('2d');
             const labels = platformsWithScores.map(p => p.name);
@@ -415,6 +425,7 @@
                 barChart.destroy();
             }
 
+            // Create bar chart
             barChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -450,6 +461,7 @@
             });
         }
 
+        // === Dropdown for radar chart ===
         function updateRadarPlatformSelect(platformsWithScores) {
             const select = document.getElementById('radarPlatformSelect');
             const prevValue = select.value;
@@ -460,7 +472,7 @@
                 option.textContent = p.name;
                 select.appendChild(option);
             });
-            // Επαναφορά επιλογής αν υπάρχει
+            // Restore selection if exists
             if (platformsWithScores.some(p => p.name === prevValue)) {
                 select.value = prevValue;
                 updateRadarChart();
@@ -469,8 +481,8 @@
             }
         }
 
+        // === Radar Chart (Weighted Features per Platform) ===
         document.getElementById('radarPlatformSelect').addEventListener('change', updateRadarChart);
-
         function updateRadarChart() {
             const select = document.getElementById('radarPlatformSelect');
             const platformName = select.value;
@@ -480,10 +492,11 @@
             }
             const platform = platformData.find(p => p.name === platformName);
             if (!platform) return;
-            // Υπολογισμός σταθμισμένων χαρακτηριστικών
+            // Calculate weighted features
             const weighted = platform.scores.map((score, i) => score * weights[i]);
             const ctx = document.getElementById('radarChart').getContext('2d');
             if (radarChart) radarChart.destroy();
+            // Create radar chart
             radarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -527,7 +540,31 @@
             });
         }
 
-        // Help Modal logic
+        // === Weighted score calculation ===
+        function calculateScore(scores) {
+            if (!Array.isArray(scores) || scores.length !== features.length) {
+                console.error('Invalid scores array');
+                return 0;
+            }
+            if (!Array.isArray(weights) || weights.length !== features.length) {
+                console.error('Invalid weights array');
+                return 0;
+            }
+            let score = 0;
+            let totalWeight = 0;
+            for (let i = 0; i < scores.length; i++) {
+                if (isNaN(scores[i]) || scores[i] < 0 || scores[i] > 10) {
+                    console.error(`Invalid score at index ${i}: ${scores[i]}`);
+                    return 0;
+                }
+                score += scores[i] * weights[i];
+                totalWeight += weights[i];
+            }
+            if (totalWeight === 0) return 0;
+            return score / totalWeight;
+        }
+
+        // === Help Modal logic ===
         document.getElementById('helpBtn').onclick = function() {
             document.getElementById('helpModal').style.display = 'block';
         };
@@ -540,7 +577,7 @@
             }
         };
 
-        // Initialize sliders
+        // === Initialize sliders ===
         generateSliders();
     </script>
     <footer style="width:100%;text-align:center;padding:20px 0;background:#f4f4f4;color:#555;font-size:15px;margin-top:40px;">
