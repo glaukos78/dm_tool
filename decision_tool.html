@@ -257,6 +257,145 @@
         .weights-modal-content, .help-modal-content {
             position: relative;
         }
+        /* === Responsive Design === */
+        @media (max-width: 768px) {
+            body {
+                padding: 0 5px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin-top: 20px;
+                margin-bottom: 15px;
+            }
+
+            .upload-section {
+                padding: 15px 10px;
+                margin-bottom: 15px;
+            }
+
+            .visibility-controls {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .visibility-btn {
+                width: 100%;
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .table-container {
+                margin: 0 -5px;
+                border-radius: 0;
+            }
+
+            .data-table {
+                font-size: 13px;
+            }
+
+            .data-table th, .data-table td {
+                padding: 8px 5px;
+            }
+
+            .chart-container {
+                padding: 15px 10px;
+                margin: 0 -5px 20px -5px;
+                border-radius: 0;
+            }
+
+            .weights-modal-content, .help-modal-content {
+                width: 95%;
+                margin: 20px auto;
+                padding: 20px 15px;
+            }
+
+            .modal-header {
+                margin: -20px -15px 15px -15px;
+                padding: 8px;
+            }
+
+            .slider-container {
+                margin: 15px 0;
+            }
+
+            .slider-label {
+                font-size: 14px;
+            }
+
+            footer {
+                margin-top: 20px;
+                padding: 15px 0;
+                font-size: 13px;
+            }
+
+            /* Touch-friendly adjustments */
+            input[type="range"] {
+                height: 30px;
+            }
+
+            button {
+                min-height: 44px; /* Minimum touch target size */
+            }
+
+            select {
+                height: 44px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+
+            /* Stack charts vertically on mobile */
+            .chart-container {
+                max-width: 100% !important;
+            }
+
+            /* Adjust radar chart for mobile */
+            #radarChart {
+                height: 400px !important;
+            }
+        }
+
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th, .data-table td {
+                padding: 6px 4px;
+            }
+
+            .weights-modal-content, .help-modal-content {
+                width: 100%;
+                margin: 10px;
+                padding: 15px 10px;
+            }
+
+            #radarChart {
+                height: 350px !important;
+            }
+        }
+
+        /* Landscape mode adjustments */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .weights-modal-content, .help-modal-content {
+                max-height: 90vh;
+                margin: 10px auto;
+            }
+
+            .modal-header {
+                margin: -20px -15px 10px -15px;
+                padding: 5px;
+            }
+
+            #radarChart {
+                height: 300px !important;
+            }
+        }
     </style>
 </head>
 <body>
