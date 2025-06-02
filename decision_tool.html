@@ -171,6 +171,10 @@
             gap: 10px;
             margin: 20px 0;
             flex-wrap: wrap;
+            background: #f4f8ff;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e3eaf7;
         }
         .visibility-btn {
             padding: 8px 16px;
@@ -180,16 +184,29 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            min-width: 120px;
         }
         .visibility-btn:hover {
             background: #1e3a6f;
+            transform: translateY(-1px);
         }
         .visibility-btn.active {
             background: #1e3a6f;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .hidden {
             display: none !important;
+        }
+        .toggle-section {
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+        .toggle-section h3 {
+            text-align: center;
+            color: #2a4d8f;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -207,12 +224,15 @@
                 <input type="file" id="fileInput" accept=".csv,.txt">
                 <p>Supported file types: CSV and TXT</p>
                 <button id="loadDefaultBtn" style="margin-top:10px; padding:8px 16px; background:#2a4d8f; color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px;">Load Default Platforms</button>
-                
-                <div class="visibility-controls" style="margin-top:15px;">
-                    <button class="visibility-btn" data-target="weights-section">Toggle Weights</button>
-                    <button class="visibility-btn" data-target="table-container">Toggle Table</button>
-                    <button class="visibility-btn" data-target="bar-chart-container">Toggle Bar Chart</button>
-                    <button class="visibility-btn" data-target="radar-chart-container">Toggle Radar Chart</button>
+            </div>
+
+            <div class="toggle-section">
+                <h3>Display Controls</h3>
+                <div class="visibility-controls">
+                    <button class="visibility-btn" data-target="weights-section">Hide Weights</button>
+                    <button class="visibility-btn" data-target="table-container">Hide Table</button>
+                    <button class="visibility-btn" data-target="bar-chart-container">Hide Bar Chart</button>
+                    <button class="visibility-btn" data-target="radar-chart-container">Hide Radar Chart</button>
                 </div>
             </div>
 
@@ -641,6 +661,10 @@
                 if (targetElement) {
                     targetElement.classList.toggle('hidden');
                     this.classList.toggle('active');
+                    // Update button text
+                    const baseText = this.textContent.replace('Hide ', '').replace('Show ', '');
+                    this.textContent = targetElement.classList.contains('hidden') ? 
+                        `Show ${baseText}` : `Hide ${baseText}`;
                 }
             });
         });
