@@ -243,10 +243,7 @@
         <canvas id="barChart"></canvas>
     </div>
     <div class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
-        <label for="radarPlatformSelect"><b>Radar Chart per Platform (Weighted Features):</b></label>
-        <select id="radarPlatformSelect" style="margin-bottom: 10px;" multiple size="5">
-            <option value="">Select platforms...</option>
-        </select>
+        <label><b>Radar Chart (Weighted Features for All Platforms):</b></label>
         <div style="width: 100%;">
             <canvas id="radarChart" style="width: 100%; height: 500px;"></canvas>
         </div>
@@ -413,7 +410,7 @@
             });
 
             updateBarChart(platformsWithScores);
-            updateRadarPlatformSelect(platformsWithScores);
+            updateRadarChart();
         }
 
         // === Bar Chart (Platform Score Comparison) ===
@@ -462,93 +459,101 @@
             });
         }
 
-        // === Dropdown for radar chart ===
-        function updateRadarPlatformSelect(platformsWithScores) {
-            const select = document.getElementById('radarPlatformSelect');
-            const prevValues = Array.from(select.selectedOptions).map(option => option.value);
-            select.innerHTML = '<option value="">Select platforms...</option>';
-            platformsWithScores.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p.name;
-                option.textContent = p.name;
-                select.appendChild(option);
-            });
-            // Restore selections if they exist
-            prevValues.forEach(value => {
-                const option = Array.from(select.options).find(opt => opt.value === value);
-                if (option) option.selected = true;
-            });
-            updateRadarChart();
-        }
-
         // === Radar Chart (Weighted Features per Platform) ===
-        document.getElementById('radarPlatformSelect').addEventListener('change', updateRadarChart);
         function updateRadarChart() {
-            const select = document.getElementById('radarPlatformSelect');
-            const selectedPlatforms = Array.from(select.selectedOptions).map(option => option.value).filter(value => value !== "");
-            
-            if (selectedPlatforms.length === 0) {
-                if (radarChart) radarChart.destroy();
-                return;
-            }
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            if (radarChart) radarChart.destroy();
 
-            const datasets = selectedPlatforms.map((platformName, index) => {
-                const platform = platformData.find(p => p.name === platformName);
-                if (!platform) return null;
-                
-                // Calculate weighted features
-                const weighted = platform.scores.map((score, i) => score * weights[i]);
-                
+            // Create datasets for each platform
+            const datasets = platformData.map((platform, index) => {
+                // Calculate weighted scores
+                const weightedScores = platform.scores.map((score, i) => {
+                    // Normalize the weight to be between 0 and 1
+                    const normalizedWeight = weights[i] / 10;
+                    // Calculate weighted score
+                    const weighted = score * normalizedWeight;
+                    return Math.min(weighted, 10); // Ensure we don't exceed 10
+                });
+
                 return {
-                    label: `${platform.name} (Score x Weight)`,
-                    data: weighted,
+                    label: platform.name,
+                    data: weightedScores,
                     backgroundColor: colors[index % colors.length],
                     borderColor: borderColors[index % borderColors.length],
                     borderWidth: 2,
                     pointBackgroundColor: borderColors[index % borderColors.length],
                     pointBorderColor: '#fff',
                     pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: borderColors[index % borderColors.length]
+                    pointHoverBorderColor: borderColors[index % borderColors.length],
+                    fill: true
                 };
-            }).filter(dataset => dataset !== null);
-
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            if (radarChart) radarChart.destroy();
+            });
 
             // Create radar chart
             radarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: [
-                        "Security Features",
-                        "Scalability & Performance",
-                        "Interoperability",
-                        "Data Analytics & AI/ML Integration",
-                        "Edge Computing Support",
-                        "Pricing & Cost-effectiveness",
-                        "Developer Tools & SDK Support",
-                        "Compliance & Standards",
-                        "OTA Update Capabilities"
-                    ],
+                    labels: features,
                     datasets: datasets
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         r: {
-                            angleLines: { display: true },
-                            beginAtZero: true
+                            angleLines: {
+                                display: true,
+                                color: 'rgba(128, 128, 128, 0.2)'
+                            },
+                            grid: {
+                                color: 'rgba(128, 128, 128, 0.2)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: {
+                                stepSize: 1,
+                                backdropColor: 'transparent'
+                            }
                         }
                     },
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Radar Chart (Weighted Features)'
+                            text: 'Radar Chart (Weighted Features)',
+                            font: {
+                                size: 16
+                            }
                         },
                         legend: {
                             position: 'bottom',
                             labels: {
                                 boxWidth: 12,
-                                padding: 15
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const platform = context.dataset.label;
+                                    const feature = features[context.dataIndex];
+                                    const value = context.raw;
+                                    const originalScore = platformData.find(p => p.name === platform).scores[context.dataIndex];
+                                    const weight = weights[context.dataIndex];
+                                    return [
+                                        `${platform} - ${feature}`,
+                                        `Original Score: ${originalScore}`,
+                                        `Weight: ${weight}`,
+                                        `Weighted Score: ${value.toFixed(2)}`
+                                    ];
+                                }
                             }
                         }
                     }
