@@ -208,6 +208,55 @@
             margin-bottom: 15px;
             font-size: 1.1rem;
         }
+        /* === Weights Modal === */
+        .weights-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(30,40,60,0.25);
+        }
+        .weights-modal-content {
+            background: #fff;
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 28px 24px 18px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 32px rgba(60,80,120,0.18);
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .weights-modal h2 {
+            margin-top: 0;
+            color: #2a4d8f;
+            margin-bottom: 20px;
+        }
+        .close-weights {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #2a4d8f;
+            cursor: pointer;
+        }
+        /* === Modal Dragging === */
+        .modal-header {
+            cursor: move;
+            user-select: none;
+            padding: 10px;
+            margin: -28px -24px 20px -24px;
+            background: #f4f8ff;
+            border-radius: 16px 16px 0 0;
+        }
+        .weights-modal-content, .help-modal-content {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -230,18 +279,31 @@
                 <h3>Display Controls</h3>
                 <div class="visibility-controls">
                     <button class="visibility-btn" data-target="upload-section">Hide Load Data</button>
-                    <button class="visibility-btn" data-target="weights-section">Hide Weights</button>
+                    <button id="weightsBtn" class="visibility-btn">Adjust Weights</button>
                     <button class="visibility-btn" data-target="table-container">Hide Table</button>
                     <button class="visibility-btn" data-target="bar-chart-container">Hide Bar Chart</button>
                     <button class="visibility-btn" data-target="radar-chart-container">Hide Radar Chart</button>
                 </div>
             </div>
 
+            <!-- ====== Weights Modal ====== -->
+            <div id="weightsModal" class="weights-modal">
+                <div class="weights-modal-content">
+                    <div class="modal-header">
+                        <button id="closeWeights" class="close-weights">&times;</button>
+                        <h2>Adjust Feature Weights</h2>
+                    </div>
+                    <div id="sliders"></div>
+                </div>
+            </div>
+
             <!-- ====== Help Modal (Pop-up) ====== -->
             <div id="helpModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(30,40,60,0.25);">
-                <div style="background:#fff; max-width:420px; margin:80px auto; padding:28px 24px 18px 24px; border-radius:16px; box-shadow:0 4px 32px rgba(60,80,120,0.18); position:relative;">
-                    <button id="closeHelp" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:22px; color:#2a4d8f; cursor:pointer;">&times;</button>
-                    <h3 style="margin-top:0; color:#2a4d8f;">Help: File Format</h3>
+                <div class="help-modal-content" style="background:#fff; max-width:420px; margin:80px auto; padding:28px 24px 18px 24px; border-radius:16px; box-shadow:0 4px 32px rgba(60,80,120,0.18); position:relative;">
+                    <div class="modal-header">
+                        <button id="closeHelp" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:22px; color:#2a4d8f; cursor:pointer;">&times;</button>
+                        <h3 style="margin-top:0; color:#2a4d8f;">Help: File Format</h3>
+                    </div>
                     <p style="margin-bottom:8px;">Upload a <b>CSV</b> file with the following columns (in this order):</p>
                     <ul style="margin-bottom:10px;">
                         <li>Platform</li>
@@ -263,11 +325,6 @@
                     </div>
                     <p style="font-size:13px; color:#888;">Tip: You can use Excel, Google Sheets, or Notepad to create your file.</p>
                 </div>
-            </div>
-
-            <div id="weights-section" class="weights-section">
-                <h2>Adjust Feature Weights</h2>
-                <div id="sliders"></div>
             </div>
 
             <div id="errorMessage" class="error"></div>
@@ -670,6 +727,22 @@
             });
         });
 
+        // === Weights Modal logic ===
+        document.getElementById('weightsBtn').onclick = function() {
+            document.getElementById('weightsModal').style.display = 'block';
+        };
+        document.getElementById('closeWeights').onclick = function() {
+            document.getElementById('weightsModal').style.display = 'none';
+        };
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('weightsModal')) {
+                document.getElementById('weightsModal').style.display = 'none';
+            }
+            if (event.target === document.getElementById('helpModal')) {
+                document.getElementById('helpModal').style.display = 'none';
+            }
+        };
+
         // === Initialize sliders ===
         generateSliders();
 
@@ -725,6 +798,60 @@
                         '. Please make sure the file exists in the same directory as this HTML file.';
                 });
         });
+
+        // === Modal Dragging Functionality ===
+        function makeModalDraggable(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = modal.querySelector('.modal-header').parentElement;
+            const header = modal.querySelector('.modal-header');
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            header.addEventListener('mousedown', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+
+            function dragStart(e) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === header || e.target.parentElement === header) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, modalContent);
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+            }
+        }
+
+        // Initialize dragging for both modals
+        makeModalDraggable('weightsModal');
+        makeModalDraggable('helpModal');
     </script>
     <footer style="width:100%;text-align:center;padding:20px 0;background:#e9f0fb;color:#2a4d8f;font-size:15px;margin-top:40px;border-radius:0 0 16px 16px;box-shadow:0 -2px 8px rgba(180,200,230,0.08);">
         <div style="max-width:800px;margin:0 auto;padding:0 20px;">
