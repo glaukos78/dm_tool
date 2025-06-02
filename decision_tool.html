@@ -429,9 +429,9 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Score',
+                        label: 'Weighted Score',
                         data: data,
-                        backgroundColor: labels.map((_, i) => borderColors[i % borderColors.length]),
+                        backgroundColor: labels.map((_, i) => colors[i % colors.length]),
                         borderColor: labels.map((_, i) => borderColors[i % borderColors.length]),
                         borderWidth: 1
                     }]
