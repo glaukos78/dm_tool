@@ -16,16 +16,17 @@
             background: linear-gradient(120deg, #f8fafc 0%, #e9f0fb 100%);
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 10px 30px 10px;
+            padding: 0;
             color: #222;
         }
         /* Main title */
         h1 {
             text-align: center;
             font-weight: 600;
-            margin-top: 32px;
-            margin-bottom: 18px;
+            margin: 32px auto 18px;
             letter-spacing: -1px;
+            max-width: 800px;
+            padding: 0 20px;
         }
         /* === Upload section === */
         .upload-section {
@@ -36,6 +37,7 @@
             margin-bottom: 24px;
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(180,200,230,0.08);
+            width: 100%;
         }
         .upload-section input[type="file"] {
             padding: 8px;
@@ -51,7 +53,7 @@
             padding: 10px;
             box-shadow: 0 1px 4px rgba(180,200,230,0.08);
             border: 1px solid #e3eaf7;
-            width: 300px;
+            width: 280px;
             position: fixed;
             left: 20px;
             top: 50%;
@@ -121,9 +123,17 @@
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(180,200,230,0.10);
-            margin-bottom: 16px;
+            margin: 0 0 16px 0;
             width: 100%;
             padding: 1px;
+        }
+        .table-label {
+            color: #2a4d8f;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+            padding: 0 10px;
         }
         .data-table {
             width: 100%;
@@ -209,8 +219,9 @@
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(180,200,230,0.10);
-            margin: 0 auto 32px auto;
+            margin: 0 0 32px 0;
             padding: 24px 18px 18px 18px;
+            width: 100%;
         }
         label[for="radarPlatformSelect"] {
             color: #2a4d8f;
@@ -243,13 +254,18 @@
         footer {
             width: 100%;
             text-align: center;
-            padding: 20px 0 10px 0;
+            padding: 20px 0 10px;
             background: #e9f0fb;
             color: #2a4d8f;
             font-size: 15px;
             margin-top: 40px;
             border-radius: 0 0 16px 16px;
             box-shadow: 0 -2px 8px rgba(180,200,230,0.08);
+        }
+        footer .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
         /* === Responsive === */
         @media (max-width: 900px) {
@@ -273,6 +289,7 @@
             padding: 15px;
             border-radius: 12px;
             border: 1px solid #e3eaf7;
+            width: 100%;
         }
         .visibility-btn {
             padding: 8px 16px;
@@ -298,7 +315,7 @@
         }
         .toggle-section {
             margin: 20px 0;
-            padding: 0 10px;
+            padding: 0;
         }
         .toggle-section h3 {
             text-align: center;
@@ -357,14 +374,13 @@
         }
         /* === Responsive Design === */
         @media (max-width: 768px) {
-            body {
-                padding: 0 5px;
+            .container {
+                padding: 0 15px;
             }
             
             h1 {
-                font-size: 1.5rem;
-                margin-top: 20px;
-                margin-bottom: 15px;
+                padding: 0 15px;
+                font-size: 1.3rem;
             }
 
             .upload-section {
@@ -431,10 +447,8 @@
                 font-size: 14px;
             }
 
-            footer {
-                margin-top: 20px;
-                padding: 15px 0;
-                font-size: 13px;
+            footer .container {
+                padding: 0 15px;
             }
 
             /* Touch-friendly adjustments */
@@ -467,7 +481,6 @@
                 top: auto;
                 transform: none;
                 width: 100%;
-                max-width: 100%;
                 margin: 8px 0;
                 padding: 8px;
                 max-height: none;
@@ -488,6 +501,8 @@
 
             .container {
                 margin-left: 0;
+                padding-left: 10px;
+                padding-right: 10px;
             }
 
             .weights-section h2 {
@@ -539,7 +554,10 @@
 
         /* Add margin to main content to prevent overlap */
         .container {
-            margin-left: 340px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
         }
     </style>
 </head>
@@ -609,6 +627,7 @@
             <div id="errorMessage" class="error"></div>
             
             <div id="table-container" class="table-container" style="margin-bottom: 16px;">
+                <div class="table-label">Sorted IoT Platforms by Weighted Score</div>
                 <table class="data-table" id="dataTable">
                     <thead>
                         <tr>
