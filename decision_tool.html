@@ -164,6 +164,33 @@
             }
             h1 { font-size: 1.3rem; }
         }
+        /* === Visibility Controls === */
+        .visibility-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .visibility-btn {
+            padding: 8px 16px;
+            background: #2a4d8f;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .visibility-btn:hover {
+            background: #1e3a6f;
+        }
+        .visibility-btn.active {
+            background: #1e3a6f;
+        }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -180,6 +207,13 @@
                 <input type="file" id="fileInput" accept=".csv,.txt">
                 <p>Supported file types: CSV and TXT</p>
                 <button id="loadDefaultBtn" style="margin-top:10px; padding:8px 16px; background:#2a4d8f; color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px;">Load Default Platforms</button>
+                
+                <div class="visibility-controls" style="margin-top:15px;">
+                    <button class="visibility-btn" data-target="weights-section">Toggle Weights</button>
+                    <button class="visibility-btn" data-target="table-container">Toggle Table</button>
+                    <button class="visibility-btn" data-target="bar-chart-container">Toggle Bar Chart</button>
+                    <button class="visibility-btn" data-target="radar-chart-container">Toggle Radar Chart</button>
+                </div>
             </div>
 
             <!-- ====== Help Modal (Pop-up) ====== -->
@@ -210,42 +244,43 @@
                 </div>
             </div>
 
-            <div class="weights-section">
+            <div id="weights-section" class="weights-section">
                 <h2>Adjust Feature Weights</h2>
                 <div id="sliders"></div>
             </div>
 
+            <div id="errorMessage" class="error"></div>
             
-    <div id="errorMessage" class="error"></div>
-    
-    <div class="table-container" style="margin-bottom: 16px;">
-        <table class="data-table" id="dataTable">
-            <thead>
-                <tr>
-                    <th>Platform</th>
-                    <th>Security Features</th>
-                    <th>Scalability and Performance</th>
-                    <th>Interoperability</th>
-                    <th>Data Analytics and AI/ML Integration</th>
-                    <th>Edge Computing Support</th>
-                    <th>Pricing Models and Cost-effectiveness</th>
-                    <th>Developer Tools and SDK Support</th>
-                    <th>Compliance and Standards</th>
-                    <th>OTA Update Capabilities</th>
-                    <th>Weighted Score</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
-    </div>
-    <div class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
-        <canvas id="barChart"></canvas>
-    </div>
-    <div class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
-        <label><b>Radar Chart (Weighted Features for All Platforms):</b></label>
-        <div style="width: 100%;">
-            <canvas id="radarChart" style="width: 100%; height: 500px;"></canvas>
+            <div id="table-container" class="table-container" style="margin-bottom: 16px;">
+                <table class="data-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>Security Features</th>
+                            <th>Scalability and Performance</th>
+                            <th>Interoperability</th>
+                            <th>Data Analytics and AI/ML Integration</th>
+                            <th>Edge Computing Support</th>
+                            <th>Pricing Models and Cost-effectiveness</th>
+                            <th>Developer Tools and SDK Support</th>
+                            <th>Compliance and Standards</th>
+                            <th>OTA Update Capabilities</th>
+                            <th>Weighted Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="bar-chart-container" class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
+                <canvas id="barChart"></canvas>
+            </div>
+            <div id="radar-chart-container" class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
+                <label><b>Radar Chart (Weighted Features for All Platforms):</b></label>
+                <div style="width: 100%;">
+                    <canvas id="radarChart" style="width: 100%; height: 500px;"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -597,6 +632,18 @@
                 document.getElementById('helpModal').style.display = 'none';
             }
         };
+
+        // === Visibility Controls ===
+        document.querySelectorAll('.visibility-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.classList.toggle('hidden');
+                    this.classList.toggle('active');
+                }
+            });
+        });
 
         // === Initialize sliders ===
         generateSliders();
