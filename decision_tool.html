@@ -244,8 +244,8 @@
     </div>
     <div class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
         <label for="radarPlatformSelect"><b>Radar Chart per Platform (Weighted Features):</b></label>
-        <select id="radarPlatformSelect" style="margin-bottom: 10px;">
-            <option value="">Select platform...</option>
+        <select id="radarPlatformSelect" style="margin-bottom: 10px;" multiple size="5">
+            <option value="">Select platforms...</option>
         </select>
         <div style="width: 100%;">
             <canvas id="radarChart" style="width: 100%; height: 500px;"></canvas>
@@ -465,38 +465,56 @@
         // === Dropdown for radar chart ===
         function updateRadarPlatformSelect(platformsWithScores) {
             const select = document.getElementById('radarPlatformSelect');
-            const prevValue = select.value;
-            select.innerHTML = '<option value="">Select platform...</option>';
+            const prevValues = Array.from(select.selectedOptions).map(option => option.value);
+            select.innerHTML = '<option value="">Select platforms...</option>';
             platformsWithScores.forEach(p => {
                 const option = document.createElement('option');
                 option.value = p.name;
                 option.textContent = p.name;
                 select.appendChild(option);
             });
-            // Restore selection if exists
-            if (platformsWithScores.some(p => p.name === prevValue)) {
-                select.value = prevValue;
-                updateRadarChart();
-            } else {
-                updateRadarChart();
-            }
+            // Restore selections if they exist
+            prevValues.forEach(value => {
+                const option = Array.from(select.options).find(opt => opt.value === value);
+                if (option) option.selected = true;
+            });
+            updateRadarChart();
         }
 
         // === Radar Chart (Weighted Features per Platform) ===
         document.getElementById('radarPlatformSelect').addEventListener('change', updateRadarChart);
         function updateRadarChart() {
             const select = document.getElementById('radarPlatformSelect');
-            const platformName = select.value;
-            if (!platformName) {
+            const selectedPlatforms = Array.from(select.selectedOptions).map(option => option.value).filter(value => value !== "");
+            
+            if (selectedPlatforms.length === 0) {
                 if (radarChart) radarChart.destroy();
                 return;
             }
-            const platform = platformData.find(p => p.name === platformName);
-            if (!platform) return;
-            // Calculate weighted features
-            const weighted = platform.scores.map((score, i) => score * weights[i]);
+
+            const datasets = selectedPlatforms.map((platformName, index) => {
+                const platform = platformData.find(p => p.name === platformName);
+                if (!platform) return null;
+                
+                // Calculate weighted features
+                const weighted = platform.scores.map((score, i) => score * weights[i]);
+                
+                return {
+                    label: `${platform.name} (Score x Weight)`,
+                    data: weighted,
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: borderColors[index % borderColors.length],
+                    borderWidth: 2,
+                    pointBackgroundColor: borderColors[index % borderColors.length],
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: borderColors[index % borderColors.length]
+                };
+            }).filter(dataset => dataset !== null);
+
             const ctx = document.getElementById('radarChart').getContext('2d');
             if (radarChart) radarChart.destroy();
+
             // Create radar chart
             radarChart = new Chart(ctx, {
                 type: 'radar',
@@ -512,17 +530,7 @@
                         "Compliance & Standards",
                         "OTA Update Capabilities"
                     ],
-                    datasets: [{
-                        label: `${platform.name} (Score x Weight)` ,
-                        data: weighted,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     scales: {
@@ -535,6 +543,13 @@
                         title: {
                             display: true,
                             text: 'Radar Chart (Weighted Features)'
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15
+                            }
                         }
                     }
                 }
