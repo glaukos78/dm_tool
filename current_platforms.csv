@@ -1,12 +1,12 @@
 Platform,Security Features,Scalability and Performance,Interoperability,Data Analytics and AI/ML Integration,Edge Computing Support,Pricing Models and Cost-effectiveness,Developer Tools and SDK Support,Compliance and Standards,OTA Update Capabilities
-AWS IoT Core,9,9,8,9,9,7,9,9,8
-Microsoft Azure IoT Hub,9,8,9,9,8,7,9,9,8
-IoT on Google Cloud Platform,9,9,8,9,8,8,8,9,7
-IBM Watson IoT Platform,8,8,9,9,7,6,8,9,7
-Cisco IoT Cloud Center,9,8,8,7,8,6,8,9,8
-Bosch IoT Suite,8,7,9,8,7,7,7,9,8
-Oracle IoT Cloud Service,8,8,7,8,7,6,7,9,7
-Siemens MindSphere,8,8,8,8,8,7,8,9,8
-Particle IoT Platform,7,7,8,6,8,8,8,8,9
-ThingWorx,8,7,8,8,7,7,8,8,8
-Blynk,8,6,7,5,7,9,7,8,8
+AWS IoT Core,9,9,8,9,9,9,9,9,9
+Blynk,5,6,6,4,1,8,7,4,7
+Bosch IoT Suite,8,8,7,7,7,7,7,7,8
+Cisco IoT Cloud Center,8,8,8,6,7,6,6,9,6
+IBM Watson IoT Platform,8,8,8,9,8,8,8,8,6
+IoT on Google Cloud Platform,8,8,7,9,9,9,3,9,1
+Microsoft Azure IoT Hub,9,9,8,9,9,9,9,9,9
+Oracle IoT Cloud Service,8,8,8,7,7,7,7,9,7
+Particle IoT Platform,8,8,6,5,7,8,8,7,8
+Siemens MindSphere,7,8,7,8,7,7,8,7,7
+ThingWorx,7,8,9,8,7,7,8,6,8
