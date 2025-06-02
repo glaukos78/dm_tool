@@ -276,6 +276,19 @@
         let barChart = null;
         let radarChart = null;
 
+        // === Default platforms data ===
+        const defaultPlatformsData = `Platform,Security Features,Scalability and Performance,Interoperability,Data Analytics and AI/ML Integration,Edge Computing Support,Pricing Models and Cost-effectiveness,Developer Tools and SDK Support,Compliance and Standards,OTA Update Capabilities
+AWS IoT Core,9,9,8,9,9,7,9,9,8
+Microsoft Azure IoT,8,9,9,9,8,8,8,9,8
+Google Cloud IoT,8,9,8,9,8,7,8,9,7
+IBM Watson IoT,8,8,9,9,7,8,8,9,8
+ThingSpeak,6,7,7,8,6,9,7,7,6
+ThingWorx,7,8,8,8,7,8,8,8,7
+Cisco IoT Cloud Connect,8,8,8,7,8,7,8,9,8
+Oracle IoT Cloud,8,8,8,8,7,7,8,9,7
+Bosch IoT Suite,8,8,8,8,8,7,8,9,8
+Siemens MindSphere,8,8,8,8,8,7,8,9,8`;
+
         // === Chart colors ===
         const colors = [
             'rgba(54, 162, 235, 0.2)',  // Blue
@@ -616,21 +629,13 @@
         // Add event listener for the Load Default Platforms button
         document.getElementById('loadDefaultBtn').addEventListener('click', function() {
             document.getElementById('errorMessage').textContent = 'Loading default platforms...';
-            fetch('current_platforms.csv')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    processCSVData(data);
-                })
-                .catch(error => {
-                    document.getElementById('errorMessage').textContent = 
-                        'Error loading default platforms: ' + error.message + 
-                        '. Please make sure the file exists in the same directory as this HTML file.';
-                });
+            try {
+                processCSVData(defaultPlatformsData);
+                document.getElementById('errorMessage').textContent = '';
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 
+                    'Error loading default platforms: ' + error.message;
+            }
         });
     </script>
     <footer style="width:100%;text-align:center;padding:20px 0;background:#f4f4f4;color:#555;font-size:15px;margin-top:40px;">
