@@ -179,6 +179,7 @@
                 <button id="helpBtn" title="Help" style="margin-left:10px; background:#2a4d8f; color:#fff; border:none; border-radius:50%; width:28px; height:28px; font-size:18px; cursor:pointer;">?</button>
                 <input type="file" id="fileInput" accept=".csv,.txt">
                 <p>Supported file types: CSV and TXT</p>
+                <button id="loadDefaultBtn" style="margin-top:10px; padding:8px 16px; background:#2a4d8f; color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:14px;">Load Default Platforms</button>
             </div>
 
             <!-- ====== Help Modal (Pop-up) ====== -->
@@ -579,6 +580,58 @@
 
         // === Initialize sliders ===
         generateSliders();
+
+        // === Process CSV Data ===
+        function processCSVData(data) {
+            try {
+                const rows = data.split('\n');
+                platformData = [];
+
+                // Read each line of the file
+                rows.forEach((row, index) => {
+                    if (index === 0) return; // Skip header row
+                    if (row.trim() === '') return; // Skip empty rows
+                    
+                    const columns = row.split(',');
+                    if (columns.length >= 10) {
+                        platformData.push({
+                            name: columns[0].trim(),
+                            scores: columns.slice(1, 10).map(score => parseFloat(score.trim()))
+                        });
+                    }
+                });
+
+                if (platformData.length === 0) {
+                    throw new Error('No valid platform data found in the file');
+                }
+
+                updateScores();
+                document.getElementById('errorMessage').textContent = '';
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 
+                    'Error processing CSV data: ' + error.message;
+            }
+        }
+
+        // Add event listener for the Load Default Platforms button
+        document.getElementById('loadDefaultBtn').addEventListener('click', function() {
+            document.getElementById('errorMessage').textContent = 'Loading default platforms...';
+            fetch('current_platforms.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    processCSVData(data);
+                })
+                .catch(error => {
+                    document.getElementById('errorMessage').textContent = 
+                        'Error loading default platforms: ' + error.message + 
+                        '. Please make sure the file exists in the same directory as this HTML file.';
+                });
+        });
     </script>
     <footer style="width:100%;text-align:center;padding:20px 0;background:#f4f4f4;color:#555;font-size:15px;margin-top:40px;">
         © <span id="footerYear"></span> Decision-Making Tool for IoT Cloud Platforms<br>
