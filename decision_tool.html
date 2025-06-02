@@ -46,36 +46,75 @@
         }
         /* === Weights section === */
         .weights-section {
-            margin: 24px 0 32px 0;
-            padding: 24px 18px 10px 18px;
             background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(180,200,230,0.08);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 1px 4px rgba(180,200,230,0.08);
+            border: 1px solid #e3eaf7;
+            width: 300px;
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .weights-section h2 {
-            font-size: 1.15rem;
-            margin-bottom: 10px;
+            font-size: 0.95rem;
             color: #2a4d8f;
-        }
-        /* === Sliders === */
-        .slider-container {
-            margin: 18px 0 10px 0;
-        }
-        .slider-label {
+            margin: 0 0 10px 0;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 1rem;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 5px 0;
+            z-index: 1;
         }
-        .slider-value {
+        .weights-section .slider-container {
+            margin: 8px 0;
+        }
+        .weights-section .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+            font-size: 0.85rem;
+        }
+        .weights-section .slider-value {
+            background: #f4f8ff;
+            padding: 1px 6px;
+            border-radius: 3px;
             font-weight: 600;
-            min-width: 30px;
-            text-align: right;
             color: #2a4d8f;
+            min-width: 25px;
+            text-align: center;
+            font-size: 0.85rem;
         }
-        input[type="range"] {
+        .weights-section input[type="range"] {
             width: 100%;
-            accent-color: #2a4d8f;
+            height: 4px;
+            background: #e3eaf7;
+            border-radius: 2px;
+            outline: none;
+        }
+        .weights-section input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #2a4d8f;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .weights-section input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #2a4d8f;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
         }
         /* === Results table === */
         .table-container {
@@ -317,87 +356,17 @@
             }
 
             .slider-container {
-                margin: 20px 0;
-                padding: 0 10px;
+                margin: 15px 0;
             }
 
             .slider-label {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-                margin-bottom: 10px;
-            }
-
-            .slider-label label {
                 font-size: 14px;
-                color: #2a4d8f;
-                font-weight: 600;
             }
 
-            .slider-value {
-                font-size: 16px;
-                font-weight: 600;
-                color: #2a4d8f;
-                background: #f4f8ff;
-                padding: 4px 8px;
-                border-radius: 4px;
-                display: inline-block;
-                min-width: 40px;
-                text-align: center;
-            }
-
-            input[type="range"] {
-                -webkit-appearance: none;
-                width: 100%;
-                height: 40px;
-                background: #f4f8ff;
-                border-radius: 20px;
-                outline: none;
-                padding: 0 5px;
-            }
-
-            input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 30px;
-                height: 30px;
-                background: #2a4d8f;
-                border-radius: 50%;
-                cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }
-
-            input[type="range"]::-moz-range-thumb {
-                width: 30px;
-                height: 30px;
-                background: #2a4d8f;
-                border-radius: 50%;
-                cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                border: none;
-            }
-
-            input[type="range"]:active::-webkit-slider-thumb {
-                background: #1e3a6f;
-                transform: scale(1.1);
-            }
-
-            input[type="range"]:active::-moz-range-thumb {
-                background: #1e3a6f;
-                transform: scale(1.1);
-            }
-
-            /* Add touch feedback */
-            input[type="range"]:focus {
-                outline: none;
-            }
-
-            input[type="range"]:focus::-webkit-slider-thumb {
-                box-shadow: 0 0 0 3px rgba(42, 77, 143, 0.2);
-            }
-
-            input[type="range"]:focus::-moz-range-thumb {
-                box-shadow: 0 0 0 3px rgba(42, 77, 143, 0.2);
+            footer {
+                margin-top: 20px;
+                padding: 15px 0;
+                font-size: 13px;
             }
 
             /* Touch-friendly adjustments */
@@ -422,6 +391,39 @@
             /* Adjust radar chart for mobile */
             #radarChart {
                 height: 400px !important;
+            }
+
+            .weights-section {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                width: 100%;
+                max-width: 100%;
+                margin: 8px 0;
+                padding: 8px;
+                max-height: none;
+            }
+
+            .weights-section .slider-container {
+                margin: 6px 0;
+            }
+
+            .weights-section .slider-label {
+                font-size: 0.8rem;
+            }
+
+            .weights-section .slider-value {
+                font-size: 0.8rem;
+                padding: 1px 4px;
+            }
+
+            .container {
+                margin-left: 0;
+            }
+
+            .weights-section h2 {
+                position: relative;
             }
         }
 
@@ -448,32 +450,6 @@
             #radarChart {
                 height: 350px !important;
             }
-
-            .slider-container {
-                margin: 15px 0;
-            }
-
-            .slider-label label {
-                font-size: 13px;
-            }
-
-            .slider-value {
-                font-size: 15px;
-            }
-
-            input[type="range"] {
-                height: 35px;
-            }
-
-            input[type="range"]::-webkit-slider-thumb {
-                width: 25px;
-                height: 25px;
-            }
-
-            input[type="range"]::-moz-range-thumb {
-                width: 25px;
-                height: 25px;
-            }
         }
 
         /* Landscape mode adjustments */
@@ -493,159 +469,9 @@
             }
         }
 
-        /* === Fluid Typography and Sizing === */
-        :root {
-            --min-width: 320px;
-            --max-width: 1200px;
-            --min-scale: 0.875;
-            --max-scale: 1;
-            --min-height: 100vh;
-        }
-
-        /* Base fluid typography */
-        html {
-            font-size: clamp(14px, 1vw + 1rem, 16px);
-        }
-
-        h1 {
-            font-size: clamp(1.5rem, 4vw + 1rem, 2.5rem);
-        }
-
-        h2 {
-            font-size: clamp(1.2rem, 2vw + 1rem, 1.5rem);
-        }
-
-        h3 {
-            font-size: clamp(1rem, 1.5vw + 1rem, 1.2rem);
-        }
-
-        /* Fluid containers */
+        /* Add margin to main content to prevent overlap */
         .container {
-            width: min(100% - 2rem, var(--max-width));
-            margin-inline: auto;
-        }
-
-        .chart-container {
-            width: min(100%, 900px);
-            height: clamp(300px, 50vh, 500px);
-        }
-
-        #radarChart {
-            width: 100% !important;
-            height: clamp(300px, 60vh, 500px) !important;
-        }
-
-        /* Responsive Design with Fluid Sizing */
-        @media (max-width: 768px) {
-            :root {
-                --container-padding: clamp(0.5rem, 2vw, 1rem);
-            }
-
-            body {
-                padding: var(--container-padding);
-            }
-
-            .upload-section {
-                padding: clamp(1rem, 3vw, 1.5rem);
-                margin-bottom: clamp(1rem, 3vw, 1.5rem);
-            }
-
-            .visibility-controls {
-                gap: clamp(0.5rem, 2vw, 1rem);
-                padding: clamp(0.75rem, 2vw, 1rem);
-            }
-
-            .visibility-btn {
-                padding: clamp(0.5rem, 2vw, 0.75rem);
-                font-size: clamp(0.875rem, 2vw, 1rem);
-            }
-
-            .table-container {
-                font-size: clamp(0.75rem, 2vw, 0.875rem);
-            }
-
-            .data-table th, .data-table td {
-                padding: clamp(0.5rem, 1.5vw, 0.75rem);
-            }
-
-            .weights-modal-content, .help-modal-content {
-                width: min(95%, 600px);
-                margin: clamp(1rem, 3vw, 2rem) auto;
-                padding: clamp(1rem, 3vw, 1.5rem);
-            }
-
-            .modal-header {
-                margin: calc(-1 * clamp(1rem, 3vw, 1.5rem)) calc(-1 * clamp(1rem, 3vw, 1.5rem)) clamp(1rem, 3vw, 1.5rem) calc(-1 * clamp(1rem, 3vw, 1.5rem));
-                padding: clamp(0.5rem, 2vw, 0.75rem);
-            }
-
-            .slider-container {
-                margin: clamp(1rem, 3vw, 1.5rem) 0;
-            }
-
-            .slider-label {
-                gap: clamp(0.25rem, 1vw, 0.5rem);
-            }
-
-            .slider-label label {
-                font-size: clamp(0.875rem, 2vw, 1rem);
-            }
-
-            .slider-value {
-                font-size: clamp(0.875rem, 2vw, 1rem);
-                padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.5rem, 2vw, 0.75rem);
-            }
-
-            input[type="range"] {
-                height: clamp(30px, 5vw, 40px);
-            }
-
-            input[type="range"]::-webkit-slider-thumb {
-                width: clamp(25px, 4vw, 30px);
-                height: clamp(25px, 4vw, 30px);
-            }
-
-            input[type="range"]::-moz-range-thumb {
-                width: clamp(25px, 4vw, 30px);
-                height: clamp(25px, 4vw, 30px);
-            }
-
-            footer {
-                margin-top: clamp(1rem, 3vw, 2rem);
-                padding: clamp(0.75rem, 2vw, 1rem) 0;
-                font-size: clamp(0.75rem, 2vw, 0.875rem);
-            }
-        }
-
-        /* Small mobile devices */
-        @media (max-width: 480px) {
-            :root {
-                --container-padding: 0.5rem;
-            }
-
-            .chart-container {
-                height: clamp(250px, 40vh, 400px);
-            }
-
-            #radarChart {
-                height: clamp(250px, 45vh, 350px) !important;
-            }
-        }
-
-        /* Landscape mode adjustments */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .weights-modal-content, .help-modal-content {
-                max-height: 90vh;
-                margin: clamp(0.5rem, 2vw, 1rem) auto;
-            }
-
-            .chart-container {
-                height: clamp(200px, 35vh, 300px);
-            }
-
-            #radarChart {
-                height: clamp(200px, 40vh, 300px) !important;
-            }
+            margin-left: 340px;
         }
     </style>
 </head>
@@ -669,22 +495,17 @@
                 <h3>Display Controls</h3>
                 <div class="visibility-controls">
                     <button class="visibility-btn" data-target="upload-section">Hide Load Data</button>
-                    <button id="weightsBtn" class="visibility-btn">Adjust Weights</button>
+                    <button class="visibility-btn" data-target="weights-section">Hide Weights</button>
                     <button class="visibility-btn" data-target="table-container">Hide Table</button>
                     <button class="visibility-btn" data-target="bar-chart-container">Hide Bar Chart</button>
                     <button class="visibility-btn" data-target="radar-chart-container">Hide Radar Chart</button>
                 </div>
             </div>
 
-            <!-- ====== Weights Modal ====== -->
-            <div id="weightsModal" class="weights-modal">
-                <div class="weights-modal-content">
-                    <div class="modal-header">
-                        <button id="closeWeights" class="close-weights">&times;</button>
-                        <h2>Adjust Feature Weights</h2>
-                    </div>
-                    <div id="sliders"></div>
-                </div>
+            <!-- ====== Weights Section ====== -->
+            <div id="weights-section" class="weights-section">
+                <h2>Adjust Feature Weights</h2>
+                <div id="sliders"></div>
             </div>
 
             <!-- ====== Help Modal (Pop-up) ====== -->
@@ -1138,22 +959,6 @@
             });
         });
 
-        // === Weights Modal logic ===
-        document.getElementById('weightsBtn').onclick = function() {
-            document.getElementById('weightsModal').style.display = 'block';
-        };
-        document.getElementById('closeWeights').onclick = function() {
-            document.getElementById('weightsModal').style.display = 'none';
-        };
-        window.onclick = function(event) {
-            if (event.target === document.getElementById('weightsModal')) {
-                document.getElementById('weightsModal').style.display = 'none';
-            }
-            if (event.target === document.getElementById('helpModal')) {
-                document.getElementById('helpModal').style.display = 'none';
-            }
-        };
-
         // === Initialize sliders ===
         generateSliders();
 
@@ -1261,7 +1066,7 @@
         }
 
         // Initialize dragging for both modals
-        makeModalDraggable('weightsModal');
+        makeModalDraggable('weights-section');
         makeModalDraggable('helpModal');
     </script>
     <footer style="width:100%;text-align:center;padding:20px 0;background:#e9f0fb;color:#2a4d8f;font-size:15px;margin-top:40px;border-radius:0 0 16px 16px;box-shadow:0 -2px 8px rgba(180,200,230,0.08);">
