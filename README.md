@@ -1,1 +1,1 @@
-Decision-Making Tool for Evaluation of oT Cloud Platforms
+Decision-Making Tool for Evaluation of IoT Cloud Platforms
