@@ -4,6 +4,9 @@
     <!-- Meta & Title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Decision-Making Tool for Evaluation of IoT Cloud Platforms</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -963,6 +966,36 @@
     </footer>
     <script>
         document.getElementById('footerYear').textContent = new Date().getFullYear();
+        
+        // Clear cache when browser is closed
+        window.addEventListener('beforeunload', function() {
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            // Clear any cached data
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+        });
+        
+        // Additional cache clearing on unload
+        window.addEventListener('unload', function() {
+            // Force clear any remaining cache
+            if (navigator.serviceWorker) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+        });
     </script>
     <script>
         // ===================
@@ -1427,23 +1460,104 @@
         // Add event listener for the Load Default Platforms button
         document.getElementById('loadDefaultBtn').addEventListener('click', function() {
             document.getElementById('errorMessage').textContent = 'Loading default platforms...';
-            fetch('current_platforms.csv')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+            
+            // Clear cache before loading
+            clearBrowserCache();
+            
+            // Add cache-busting parameter to prevent caching
+            const timestamp = new Date().getTime();
+            const url = `current_platforms.csv?t=${timestamp}`;
+            
+            // Try fetch first, then XMLHttpRequest as fallback
+            loadCSVWithFetch(url)
+                .catch(() => loadCSVWithXHR(url));
+        });
+        
+        // Function to clear browser cache
+        function clearBrowserCache() {
+            // Clear localStorage and sessionStorage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear cache API
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
                     }
-                    return response.text();
-                })
-                .then(data => {
-                    processCSVData(data);
-                    document.getElementById('errorMessage').textContent = '';
-                })
-                .catch(error => {
+                });
+            }
+            
+            // Clear service workers
+            if (navigator.serviceWorker) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+        }
+        
+        // Fetch method with cache control
+        function loadCSVWithFetch(url) {
+            return fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                },
+                cache: 'no-store'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                processCSVData(data);
+                document.getElementById('errorMessage').textContent = '';
+            })
+            .catch(error => {
+                throw error;
+            });
+        }
+        
+        // XMLHttpRequest method for better cache control
+        function loadCSVWithXHR(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                xhr.setRequestHeader('Pragma', 'no-cache');
+                xhr.setRequestHeader('Expires', '0');
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        processCSVData(xhr.responseText);
+                        document.getElementById('errorMessage').textContent = '';
+                        resolve();
+                    } else {
+                        const error = new Error(`HTTP error! status: ${xhr.status}`);
+                        document.getElementById('errorMessage').textContent = 
+                            'Error loading default platforms: ' + error.message + 
+                            '. Please make sure the file exists in the same directory as this HTML file.';
+                        reject(error);
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    const error = new Error('Network error occurred');
                     document.getElementById('errorMessage').textContent = 
                         'Error loading default platforms: ' + error.message + 
                         '. Please make sure the file exists in the same directory as this HTML file.';
-                });
-        });
+                    reject(error);
+                };
+                
+                xhr.send();
+            });
+        }
 
         // === Platform Colors Modal ===
         const platformColorsModal = document.getElementById('platformColorsModal');
