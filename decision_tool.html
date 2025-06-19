@@ -1132,14 +1132,38 @@
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
 
-            // Calculate score for each platform
-            const platformsWithScores = platformData.map(platform => ({
-                ...platform,
-                weightedScore: calculateScore(platform.scores)
-            }));
+            // Calculate final score for each platform
+            const platformsWithScores = platformData.map(platform => {
+                const fv = platform.scores; // Features Vector
+                const fs = fv.reduce((sum, score, index) => sum + score * weights[index], 0) / 
+                          weights.reduce((sum, weight) => sum + weight, 0); // Final Score
+                return {
+                    ...platform,
+                    fv: fv,
+                    fs: fs,
+                    pn: platform.name // Platform Name
+                };
+            });
 
-            // Sort by score
-            platformsWithScores.sort((a, b) => b.weightedScore - a.weightedScore);
+            // Create priority order for tie-breaking
+            const priorityOrder = [...Array(weights.length).keys()]
+                .sort((a, b) => weights[b] - weights[a]);
+
+            // Sort platforms using the new comparison algorithm
+            platformsWithScores.sort((a, b) => {
+                if (a.fs !== b.fs) {
+                    return b.fs - a.fs; // Higher final score comes first
+                }
+                
+                // Tie-breaking based on priority order
+                for (const k of priorityOrder) {
+                    if (a.fv[k] !== b.fv[k]) {
+                        return b.fv[k] - a.fv[k]; // Higher feature value comes first
+                    }
+                }
+                
+                return a.pn.localeCompare(b.pn); // Alphabetical order for platform names
+            });
 
             // Update table
             platformsWithScores.forEach((platform, index) => {
@@ -1157,9 +1181,9 @@
                     tr.appendChild(td);
                 });
 
-                // Show total score
+                // Show final score
                 const tdScore = document.createElement('td');
-                tdScore.textContent = platform.weightedScore.toFixed(2);
+                tdScore.textContent = platform.fs.toFixed(2);
                 tr.appendChild(tdScore);
 
                 tableBody.appendChild(tr);
@@ -1174,7 +1198,7 @@
         function updateBarChart(platformsWithScores) {
             const ctx = document.getElementById('barChart').getContext('2d');
             const labels = platformsWithScores.map(p => p.name);
-            const data = platformsWithScores.map(p => p.weightedScore.toFixed(2));
+            const data = platformsWithScores.map(p => p.fs.toFixed(2));
 
             if (barChart) {
                 barChart.destroy();
@@ -1186,7 +1210,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Weighted Score',
+                        label: 'Final Score',
                         data: data,
                         backgroundColor: labels.map((label, i) => getPlatformColor(label, i).bg),
                         borderColor: labels.map((label, i) => getPlatformColor(label, i).border),
@@ -1208,7 +1232,7 @@
                             max: 10,
                             title: {
                                 display: true,
-                                text: 'Score (0-10)'
+                                text: 'Final Score (0-10)'
                             }
                         }
                     }
@@ -1225,11 +1249,10 @@
             const datasets = platformData.map((platform, index) => {
                 const platformColor = getPlatformColor(platform.name, index);
                 
-                // Calculate weighted scores
+                // Calculate weighted scores for each feature
                 const weightedScores = platform.scores.map((score, i) => {
-                    const normalizedWeight = weights[i] / 10;
-                    const weighted = score * normalizedWeight;
-                    return Math.min(weighted, 10);
+                    const normalizedWeight = weights[i] / Math.max(...weights);
+                    return score * normalizedWeight;
                 });
 
                 return {
@@ -1305,10 +1328,9 @@
                                     const originalScore = platformData.find(p => p.name === platform).scores[context.dataIndex];
                                     const weight = weights[context.dataIndex];
                                     return [
-                                        `${platform} - ${feature}`,
+                                        `${platform}: ${value.toFixed(2)}`,
                                         `Original Score: ${originalScore}`,
-                                        `Weight: ${weight}`,
-                                        `Weighted Score: ${value.toFixed(2)}`
+                                        `Weight: ${weight}`
                                     ];
                                 }
                             }
