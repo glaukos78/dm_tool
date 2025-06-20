@@ -1483,6 +1483,36 @@
             // Get visible platforms (initially top 3)
             let visiblePlatforms = getVisiblePlatforms(platformsWithScores);
 
+            // Check if no platforms are visible
+            if (visiblePlatforms.length === 0) {
+                // Show empty state message
+                const canvas = document.getElementById('radarChart');
+                const ctx2d = canvas.getContext('2d');
+                
+                // Clear canvas
+                ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Set background
+                ctx2d.fillStyle = '#f8fafc';
+                ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw message
+                ctx2d.fillStyle = '#2a4d8f';
+                ctx2d.font = '16px Inter, Arial, sans-serif';
+                ctx2d.textAlign = 'center';
+                ctx2d.textBaseline = 'middle';
+                
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                ctx2d.fillText('No platforms selected for radar chart', centerX, centerY - 20);
+                ctx2d.fillText('Use "Add Platform" to display platforms', centerX, centerY + 10);
+                
+                // Update platform selector
+                updatePlatformSelector(platformsWithScores);
+                return;
+            }
+
             // Create datasets for visible platforms
             const datasets = visiblePlatforms.map((platform, index) => {
                 const platformColor = getPlatformColor(platform.name, index);
@@ -1585,21 +1615,22 @@
         function getVisiblePlatforms(platformsWithScores) {
             const showAll = localStorage.getItem('showAllPlatforms') === 'true';
             const customPlatforms = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
+            const removedPlatforms = JSON.parse(localStorage.getItem('removedPlatforms') || '[]');
             
             if (showAll) {
                 return platformsWithScores;
             } else if (customPlatforms.length > 0) {
-                // Show top 3 + custom selected platforms
-                const top3 = platformsWithScores.slice(0, 3);
-                const custom = platformsWithScores.filter(p => customPlatforms.includes(p.name));
+                // Show top 3 (excluding removed ones) + custom selected platforms
+                const top3 = platformsWithScores.slice(0, 3).filter(p => !removedPlatforms.includes(p.name));
+                const custom = platformsWithScores.filter(p => customPlatforms.includes(p.name) && !removedPlatforms.includes(p.name));
                 const combined = [...top3, ...custom];
                 // Remove duplicates
                 return combined.filter((platform, index, self) => 
                     index === self.findIndex(p => p.name === platform.name)
                 );
             } else {
-                // Show only top 3
-                return platformsWithScores.slice(0, 3);
+                // Show only top 3 (excluding removed ones) - can be empty if all are removed
+                return platformsWithScores.slice(0, 3).filter(p => !removedPlatforms.includes(p.name));
             }
         }
 
@@ -1607,7 +1638,6 @@
         function updatePlatformSelector(platformsWithScores) {
             const selector = document.getElementById('platformSelector');
             const removeSelector = document.getElementById('removePlatformSelector');
-            const currentCustom = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
             const showAll = localStorage.getItem('showAllPlatforms') === 'true';
             
             // Clear existing options except the first one
@@ -1623,17 +1653,21 @@
                     removeSelector.appendChild(option);
                 });
             } else {
-                // In "Top 3" mode, only custom added platforms can be removed
-                currentCustom.forEach(platformName => {
+                // In "Top 3" or custom mode
+                const visiblePlatforms = getVisiblePlatforms(platformsWithScores);
+                
+                // Add all visible platforms to remove selector
+                visiblePlatforms.forEach(platform => {
                     const option = document.createElement('option');
-                    option.value = platformName;
-                    option.textContent = platformName;
+                    option.value = platform.name;
+                    option.textContent = platform.name;
                     removeSelector.appendChild(option);
                 });
                 
-                // Add platforms that are not in top 3 and not already selected
-                platformsWithScores.slice(3).forEach(platform => {
-                    if (!currentCustom.includes(platform.name)) {
+                // Add platforms that are not visible to add selector
+                const visibleNames = visiblePlatforms.map(p => p.name);
+                platformsWithScores.forEach(platform => {
+                    if (!visibleNames.includes(platform.name)) {
                         const option = document.createElement('option');
                         option.value = platform.name;
                         option.textContent = platform.name;
@@ -2354,6 +2388,7 @@
             showAllBtn.addEventListener('click', function() {
                 localStorage.setItem('showAllPlatforms', 'true');
                 localStorage.removeItem('customPlatforms');
+                localStorage.removeItem('removedPlatforms');
                 
                 // Update button states
                 showAllBtn.classList.add('active');
@@ -2367,6 +2402,7 @@
             showTop3Btn.addEventListener('click', function() {
                 localStorage.setItem('showAllPlatforms', 'false');
                 localStorage.removeItem('customPlatforms');
+                localStorage.removeItem('removedPlatforms');
                 
                 // Update button states
                 showTop3Btn.classList.add('active');
@@ -2385,15 +2421,21 @@
                     if (!currentCustom.includes(selectedPlatform)) {
                         currentCustom.push(selectedPlatform);
                         localStorage.setItem('customPlatforms', JSON.stringify(currentCustom));
-                        localStorage.setItem('showAllPlatforms', 'false');
-                        
-                        // Update button states
-                        showTop3Btn.classList.add('active');
-                        showAllBtn.classList.remove('active');
-                        
-                        // Update chart
-                        updateRadarChart();
                     }
+                    
+                    // Remove from the 'removed' list if it's there
+                    const removedPlatforms = JSON.parse(localStorage.getItem('removedPlatforms') || '[]');
+                    const updatedRemoved = removedPlatforms.filter(p => p !== selectedPlatform);
+                    localStorage.setItem('removedPlatforms', JSON.stringify(updatedRemoved));
+
+                    localStorage.setItem('showAllPlatforms', 'false');
+                    
+                    // Update button states
+                    showTop3Btn.classList.add('active');
+                    showAllBtn.classList.remove('active');
+                    
+                    // Update chart
+                    updateRadarChart();
                     
                     // Reset selector
                     this.value = '';
@@ -2434,14 +2476,77 @@
                         showTop3Btn.classList.add('active');
                         showAllBtn.classList.remove('active');
                     } else {
-                        // In "Top 3" mode, remove from custom platforms
-                        const currentCustom = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
-                        const updatedCustom = currentCustom.filter(p => p !== selectedPlatform);
-                        localStorage.setItem('customPlatforms', JSON.stringify(updatedCustom));
+                        // In "Top 3" mode, handle removal of any visible platform
+                        const platformsWithScores = platformData.map((platform, index) => {
+                            const fv = platform.scores;
+                            const fs = fv.reduce((sum, score, index) => sum + score * weights[index], 0) / 
+                                      weights.reduce((sum, weight) => sum + weight, 0);
+                            return {
+                                ...platform,
+                                fv: fv,
+                                fs: fs,
+                                pn: platform.name
+                            };
+                        });
+                        
+                        platformsWithScores.sort((a, b) => b.fs - a.fs);
+                        
+                        // Check if it's a top 3 platform
+                        const top3Names = platformsWithScores.slice(0, 3).map(p => p.name);
+                        const isTop3Platform = top3Names.includes(selectedPlatform);
+                        
+                        if (isTop3Platform) {
+                            // Remove from top 3 by adding to removed list
+                            const removedPlatforms = JSON.parse(localStorage.getItem('removedPlatforms') || '[]');
+                            if (!removedPlatforms.includes(selectedPlatform)) {
+                                removedPlatforms.push(selectedPlatform);
+                                localStorage.setItem('removedPlatforms', JSON.stringify(removedPlatforms));
+                            }
+                        } else {
+                            // Remove from custom platforms
+                            const currentCustom = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
+                            const updatedCustom = currentCustom.filter(p => p !== selectedPlatform);
+                            localStorage.setItem('customPlatforms', JSON.stringify(updatedCustom));
+                        }
                     }
                     
                     // Update chart
                     updateRadarChart();
+                    
+                    // Show feedback message
+                    const errorMessage = document.getElementById('errorMessage');
+                    
+                    // Check if all platforms are now removed
+                    const platformsWithScores = platformData.map((platform, index) => {
+                        const fv = platform.scores;
+                        const fs = fv.reduce((sum, score, index) => sum + score * weights[index], 0) / 
+                                  weights.reduce((sum, weight) => sum + weight, 0);
+                        return {
+                            ...platform,
+                            fv: fv,
+                            fs: fs,
+                            pn: platform.name
+                        };
+                    });
+                    
+                    platformsWithScores.sort((a, b) => b.fs - a.fs);
+                    const visiblePlatforms = getVisiblePlatforms(platformsWithScores);
+                    
+                    if (visiblePlatforms.length === 0) {
+                        errorMessage.textContent = `All platforms removed from radar chart. Use "Add Platform" to display platforms.`;
+                    } else {
+                        errorMessage.textContent = `Platform "${selectedPlatform}" removed from radar chart`;
+                    }
+                    
+                    errorMessage.style.color = '#2a4d8f';
+                    errorMessage.style.fontWeight = '600';
+                    
+                    // Clear message after 3 seconds
+                    setTimeout(() => {
+                        errorMessage.textContent = '';
+                        errorMessage.style.color = '#d32f2f';
+                        errorMessage.style.fontWeight = '600';
+                    }, 3000);
                     
                     // Reset selector
                     this.value = '';
