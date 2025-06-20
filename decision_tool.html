@@ -1142,6 +1142,11 @@
                     });
 
                     updateScores();
+                    document.getElementById('errorMessage').textContent = '';
+                    
+                    // Hide upload section and scroll to table
+                    hideUploadSectionAndScrollToTable();
+                    
                 } catch (error) {
                     document.getElementById('errorMessage').textContent = 
                         'Error processing file: ' + error.message;
@@ -1451,10 +1456,59 @@
 
                 updateScores();
                 document.getElementById('errorMessage').textContent = '';
+                
+                // Hide upload section and scroll to table
+                hideUploadSectionAndScrollToTable();
+                
             } catch (error) {
                 document.getElementById('errorMessage').textContent = 
                     'Error processing CSV data: ' + error.message;
             }
+        }
+        
+        // Function to hide upload section and scroll to table
+        function hideUploadSectionAndScrollToTable() {
+            // Show success message briefly
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = 'Data loaded successfully!';
+            errorMessage.style.color = '#2e7d32';
+            errorMessage.style.fontWeight = '600';
+            
+            // Hide the upload section after a short delay
+            setTimeout(() => {
+                const uploadSection = document.getElementById('upload-section');
+                uploadSection.classList.add('hidden');
+                
+                // Update the visibility button text
+                const uploadButton = document.querySelector('[data-target="upload-section"]');
+                if (uploadButton) {
+                    uploadButton.textContent = 'Show Load Data';
+                    uploadButton.classList.add('active');
+                }
+                
+                // Clear success message
+                errorMessage.textContent = '';
+                errorMessage.style.color = '#d32f2f';
+                errorMessage.style.fontWeight = '600';
+                
+                // Scroll to the table with smooth animation
+                const tableContainer = document.getElementById('table-container');
+                if (tableContainer) {
+                    tableContainer.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                    
+                    // Add a subtle highlight effect to the table
+                    tableContainer.style.transition = 'box-shadow 0.3s ease';
+                    tableContainer.style.boxShadow = '0 4px 16px rgba(42, 77, 143, 0.2)';
+                    
+                    // Remove the highlight after 2 seconds
+                    setTimeout(() => {
+                        tableContainer.style.boxShadow = '0 2px 8px rgba(180,200,230,0.10)';
+                    }, 2000);
+                }
+            }, 1000);
         }
 
         // Add event listener for the Load Default Platforms button
