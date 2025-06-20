@@ -939,6 +939,54 @@
                 min-width: 120px;
             }
         }
+
+        /* === Radar Chart Controls === */
+        .radar-control-btn {
+            padding: 6px 12px;
+            border: 1px solid #b6c6e3;
+            background: #f4f8ff;
+            color: #2a4d8f;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .radar-control-btn:hover {
+            background: #e3eaf7;
+            border-color: #2a4d8f;
+        }
+
+        .radar-control-btn.active {
+            background: #2a4d8f;
+            color: #fff;
+            border-color: #2a4d8f;
+        }
+
+        @media (max-width: 768px) {
+            .radar-control-btn {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+            
+            #radar-chart-container .chart-container > div:first-child {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+            
+            #radar-chart-container .chart-container > div:first-child > div:last-child {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            #platformSelector, #removePlatformSelector {
+                width: 100%;
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1032,7 +1080,19 @@
                 <canvas id="barChart"></canvas>
             </div>
             <div id="radar-chart-container" class="chart-container" style="max-width: 900px; margin: 0 auto 32px auto;">
-                <!--<label><b>Radar Chart (Weighted Features for All Platforms):</b></label> -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <label style="color: #2a4d8f; font-weight: 600; margin: 0;">Radar Chart (Weighted Features)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="showAllPlatforms" class="radar-control-btn">Show All Platforms</button>
+                        <button id="showTop3Platforms" class="radar-control-btn active">Show Top 3</button>
+                        <select id="platformSelector" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #b6c6e3; background: #f4f8ff; font-size: 0.9rem;">
+                            <option value="">Add Platform...</option>
+                        </select>
+                        <select id="removePlatformSelector" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #b6c6e3; background: #f4f8ff; font-size: 0.9rem;">
+                            <option value="">Remove Platform...</option>
+                        </select>
+                    </div>
+                </div>
                 <div style="width: 100%;">
                     <canvas id="radarChart" style="width: 100%; height: 500px;"></canvas>
                 </div>
@@ -1404,8 +1464,27 @@
             const ctx = document.getElementById('radarChart').getContext('2d');
             if (radarChart) radarChart.destroy();
 
-            // Create datasets for each platform
-            const datasets = platformData.map((platform, index) => {
+            // Get platforms with scores for sorting
+            const platformsWithScores = platformData.map((platform, index) => {
+                const fv = platform.scores;
+                const fs = fv.reduce((sum, score, index) => sum + score * weights[index], 0) / 
+                          weights.reduce((sum, weight) => sum + weight, 0);
+                return {
+                    ...platform,
+                    fv: fv,
+                    fs: fs,
+                    pn: platform.name
+                };
+            });
+
+            // Sort platforms by score
+            platformsWithScores.sort((a, b) => b.fs - a.fs);
+
+            // Get visible platforms (initially top 3)
+            let visiblePlatforms = getVisiblePlatforms(platformsWithScores);
+
+            // Create datasets for visible platforms
+            const datasets = visiblePlatforms.map((platform, index) => {
                 const platformColor = getPlatformColor(platform.name, index);
                 
                 // Calculate weighted scores for each feature
@@ -1497,6 +1576,71 @@
                     }
                 }
             });
+
+            // Update platform selector
+            updatePlatformSelector(platformsWithScores);
+        }
+
+        // Get visible platforms based on current state
+        function getVisiblePlatforms(platformsWithScores) {
+            const showAll = localStorage.getItem('showAllPlatforms') === 'true';
+            const customPlatforms = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
+            
+            if (showAll) {
+                return platformsWithScores;
+            } else if (customPlatforms.length > 0) {
+                // Show top 3 + custom selected platforms
+                const top3 = platformsWithScores.slice(0, 3);
+                const custom = platformsWithScores.filter(p => customPlatforms.includes(p.name));
+                const combined = [...top3, ...custom];
+                // Remove duplicates
+                return combined.filter((platform, index, self) => 
+                    index === self.findIndex(p => p.name === platform.name)
+                );
+            } else {
+                // Show only top 3
+                return platformsWithScores.slice(0, 3);
+            }
+        }
+
+        // Update platform selector dropdown
+        function updatePlatformSelector(platformsWithScores) {
+            const selector = document.getElementById('platformSelector');
+            const removeSelector = document.getElementById('removePlatformSelector');
+            const currentCustom = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
+            const showAll = localStorage.getItem('showAllPlatforms') === 'true';
+            
+            // Clear existing options except the first one
+            selector.innerHTML = '<option value="">Add Platform...</option>';
+            removeSelector.innerHTML = '<option value="">Remove Platform...</option>';
+            
+            if (showAll) {
+                // In "Show All" mode, all platforms can be removed
+                platformsWithScores.forEach(platform => {
+                    const option = document.createElement('option');
+                    option.value = platform.name;
+                    option.textContent = platform.name;
+                    removeSelector.appendChild(option);
+                });
+            } else {
+                // In "Top 3" mode, only custom added platforms can be removed
+                currentCustom.forEach(platformName => {
+                    const option = document.createElement('option');
+                    option.value = platformName;
+                    option.textContent = platformName;
+                    removeSelector.appendChild(option);
+                });
+                
+                // Add platforms that are not in top 3 and not already selected
+                platformsWithScores.slice(3).forEach(platform => {
+                    if (!currentCustom.includes(platform.name)) {
+                        const option = document.createElement('option');
+                        option.value = platform.name;
+                        option.textContent = platform.name;
+                        selector.appendChild(option);
+                    }
+                });
+            }
         }
 
         // === Weighted score calculation ===
@@ -2197,6 +2341,122 @@
         // Initialize cookie banner when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initCookieBanner();
+        });
+
+        // === Radar Chart Controls ===
+        document.addEventListener('DOMContentLoaded', function() {
+            const showAllBtn = document.getElementById('showAllPlatforms');
+            const showTop3Btn = document.getElementById('showTop3Platforms');
+            const platformSelector = document.getElementById('platformSelector');
+            const removePlatformSelector = document.getElementById('removePlatformSelector');
+
+            // Show All Platforms button
+            showAllBtn.addEventListener('click', function() {
+                localStorage.setItem('showAllPlatforms', 'true');
+                localStorage.removeItem('customPlatforms');
+                
+                // Update button states
+                showAllBtn.classList.add('active');
+                showTop3Btn.classList.remove('active');
+                
+                // Update chart
+                updateRadarChart();
+            });
+
+            // Show Top 3 Platforms button
+            showTop3Btn.addEventListener('click', function() {
+                localStorage.setItem('showAllPlatforms', 'false');
+                localStorage.removeItem('customPlatforms');
+                
+                // Update button states
+                showTop3Btn.classList.add('active');
+                showAllBtn.classList.remove('active');
+                
+                // Update chart
+                updateRadarChart();
+            });
+
+            // Platform selector
+            platformSelector.addEventListener('change', function() {
+                const selectedPlatform = this.value;
+                if (selectedPlatform) {
+                    const currentCustom = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
+                    
+                    if (!currentCustom.includes(selectedPlatform)) {
+                        currentCustom.push(selectedPlatform);
+                        localStorage.setItem('customPlatforms', JSON.stringify(currentCustom));
+                        localStorage.setItem('showAllPlatforms', 'false');
+                        
+                        // Update button states
+                        showTop3Btn.classList.add('active');
+                        showAllBtn.classList.remove('active');
+                        
+                        // Update chart
+                        updateRadarChart();
+                    }
+                    
+                    // Reset selector
+                    this.value = '';
+                }
+            });
+
+            // Remove platform selector
+            removePlatformSelector.addEventListener('change', function() {
+                const selectedPlatform = this.value;
+                if (selectedPlatform) {
+                    const showAll = localStorage.getItem('showAllPlatforms') === 'true';
+                    
+                    if (showAll) {
+                        // In "Show All" mode, switch to "Top 3" mode and add all except the removed one
+                        const platformsWithScores = platformData.map((platform, index) => {
+                            const fv = platform.scores;
+                            const fs = fv.reduce((sum, score, index) => sum + score * weights[index], 0) / 
+                                      weights.reduce((sum, weight) => sum + weight, 0);
+                            return {
+                                ...platform,
+                                fv: fv,
+                                fs: fs,
+                                pn: platform.name
+                            };
+                        });
+                        
+                        platformsWithScores.sort((a, b) => b.fs - a.fs);
+                        
+                        // Add all platforms except the removed one
+                        const customPlatforms = platformsWithScores
+                            .filter(p => p.name !== selectedPlatform)
+                            .map(p => p.name);
+                        
+                        localStorage.setItem('customPlatforms', JSON.stringify(customPlatforms));
+                        localStorage.setItem('showAllPlatforms', 'false');
+                        
+                        // Update button states
+                        showTop3Btn.classList.add('active');
+                        showAllBtn.classList.remove('active');
+                    } else {
+                        // In "Top 3" mode, remove from custom platforms
+                        const currentCustom = JSON.parse(localStorage.getItem('customPlatforms') || '[]');
+                        const updatedCustom = currentCustom.filter(p => p !== selectedPlatform);
+                        localStorage.setItem('customPlatforms', JSON.stringify(updatedCustom));
+                    }
+                    
+                    // Update chart
+                    updateRadarChart();
+                    
+                    // Reset selector
+                    this.value = '';
+                }
+            });
+
+            // Initialize button states
+            const showAll = localStorage.getItem('showAllPlatforms') === 'true';
+            if (showAll) {
+                showAllBtn.classList.add('active');
+                showTop3Btn.classList.remove('active');
+            } else {
+                showTop3Btn.classList.add('active');
+                showAllBtn.classList.remove('active');
+            }
         });
     </script>
 </body>
